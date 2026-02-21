@@ -169,6 +169,32 @@ def draw_document_enemy(surface, x, y, enemy_type=0, frame=0):
             pygame.draw.rect(surface, (120, 70, 170), (x + 8 + i * 12, ey + 28, 8, 7), 1)
         pygame.draw.rect(surface, (120, 70, 170), (x + 7, ey + 38, 36, 2))
         pygame.draw.rect(surface, (80, 35, 140), (x + 5, ey + 2, 42, 40), 1, border_radius=2)
+# ---------------------------------------------
+#  PLAYER SPRITE (Community Tax logo)
+# ---------------------------------------------
+_PLAYER_SPRITE: object = None        # full-size 52×52 pygame.Surface
+_PLAYER_SPRITE_HUD: object = None    # small  22×22 pygame.Surface
+
+def _get_player_sprite():
+    """Lazy-load the Community Tax logo as the player sprite (52×52)."""
+    global _PLAYER_SPRITE
+    if _PLAYER_SPRITE is None:
+        try:
+            raw = pygame.image.load("assets/player_sprite.png").convert_alpha()
+            _PLAYER_SPRITE = pygame.transform.smoothscale(raw, (52, 52))
+        except Exception:
+            pass  # falls back to draw_player()
+    return _PLAYER_SPRITE
+
+
+def _get_player_sprite_hud():
+    """Small 22×22 version of the player sprite for HUD lives icons."""
+    global _PLAYER_SPRITE_HUD
+    if _PLAYER_SPRITE_HUD is None:
+        base = _get_player_sprite()
+        if base is not None:
+            _PLAYER_SPRITE_HUD = pygame.transform.smoothscale(base, (22, 22))
+    return _PLAYER_SPRITE_HUD
 
 
 def draw_bullet_player(surface, x, y):
@@ -275,7 +301,11 @@ class Player:
     def draw(self, surface):
         if self.invincible > 0 and (self.invincible // 8) % 2 == 1:
             return  # blink during invulnerability
-        draw_player(surface, self.x, self.y, self.color)
+        spr = _get_player_sprite()
+        if spr is not None:
+            surface.blit(spr, (self.x, self.y))
+        else:
+            draw_player(surface, self.x, self.y, self.color)
 
 
 class Enemy:
@@ -784,9 +814,20 @@ class GameScene:
         # Lives
         lives_txt = sf.render("LIVES:", True, LIGHT_GRAY)
         self.screen.blit(lives_txt, (SCREEN_W - 220, 10))
+        hud_spr = _get_player_sprite_hud()
         for i in range(MAX_LIVES):
-            col = GREEN if i < self.player.lives else DARK_GRAY
-            draw_player(self.screen, SCREEN_W - 160 + i * 28, -8, col)
+            lx = SCREEN_W - 158 + i * 26
+            ly = 11
+            if hud_spr is not None:
+                if i < self.player.lives:
+                    self.screen.blit(hud_spr, (lx, ly))
+                else:
+                    dim = hud_spr.copy()
+                    dim.fill((40, 40, 60, 80), special_flags=pygame.BLEND_RGBA_MULT)
+                    self.screen.blit(dim, (lx, ly))
+            else:
+                col = GREEN if i < self.player.lives else DARK_GRAY
+                draw_player(self.screen, lx, -8, col)
 
         # Bottom line of play area
         pygame.draw.line(self.screen, CYAN, (0, SCREEN_H - 50), (SCREEN_W, SCREEN_H - 50), 1)
