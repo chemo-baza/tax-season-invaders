@@ -13,8 +13,10 @@ dist/
 venv/
 env/
 
-# Pygbag build output
+# Pygbag build output – exclude everything EXCEPT the deployable web bundle
 build/
+!build/web/
+!build/web/**
 main.py
 
 # Pygbag cache
