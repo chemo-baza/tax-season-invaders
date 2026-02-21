@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+dist/
+.eggs/
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Pygbag build output
+build/
+main.py
+
+# Pygbag cache
+build/web-cache/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+*.swp
+*.swo
